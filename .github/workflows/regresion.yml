@@ -26,12 +26,12 @@ jobs:
         run: mkdir -p test-results evidencias
 
       - name: Limpiar evidencias previas
-        run: rm -rf evidencias/*.png test-results/*.xml 
+        # Ahora también limpiamos los archivos .webm (videos)
+        run: rm -rf evidencias/*.png evidencias/*.webm test-results/*.xml 
         
       - name: Ejecutar tests de regresion
         run: pytest tests/regresion/ -v --junitxml=test-results/junit.xml
-
-            
+           
       # ── Activar cuando Xray esté disponible ──────────────────────────────
       # - name: Autenticar con Xray Cloud
       #   if: always()
@@ -67,5 +67,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: evidencias-PR${{ github.event.pull_request.number }}
-          path: evidencias/
-          retention-days: 30
+          # Aseguramos que capture tanto fotos (.png) como videos (.webm)
+          path: |
+            evidencias/*.png
+            evidencias/*.webm
+            test-results/junit.xml
+          retention-days: 7

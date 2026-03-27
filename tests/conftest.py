@@ -2,10 +2,11 @@ import pytest
 import subprocess
 import time
 import os
+from pathlib import Path
 
+# 1. Servidor Local Automático
 @pytest.fixture(scope='session', autouse=True)
 def servidor_icg():
-    # Encuentra la carpeta 'sistema-demo' subiendo un nivel desde 'tests'
     ruta = os.path.join(os.path.dirname(__file__), '..', 'sistema-demo')
     ruta = os.path.abspath(ruta)
     
@@ -18,14 +19,50 @@ def servidor_icg():
     yield 'http://localhost:8080'
     proc.terminate()
 
+# 2. Configuración del Navegador (Modo Headless para CI/CD)
 @pytest.fixture(scope='session')
 def browser_type_launch_args(browser_type_launch_args):
-    # CI es una variable que GitHub Actions pone en True automáticamente
-    es_ci = os.environ.get('GITHUB_ACTIONS') == 'true' or os.environ.get('CI') is True
-    
+    es_ci = os.environ.get('GITHUB_ACTIONS') == 'true' or os.environ.get('CI') == 'true'
     return {
         **browser_type_launch_args,
-        "headless": es_ci,  # Si es CI, NO levanta ventana. Si es prueba local, SÍ la levanta.
-        "slow_mo": 0 if es_ci else 800 # Sin esperas en el pipeline para ir más rápido
+        "headless": es_ci,
+        "slow_mo": 0 if es_ci else 800
     }
 
+# 3. Configuración de Grabación de Video (1 por test)
+@pytest.fixture(scope='function')
+def browser_context_args(browser_context_args):
+    # Asegurar que la carpeta existe antes de grabar
+    Path("evidencias").mkdir(exist_ok=True)
+    return {
+        **browser_context_args,
+        "record_video_dir": "evidencias/",
+        "record_video_size": {"width": 1280, "height": 720}
+    }
+
+# 4. Renombrar Video de forma segura (Esperando al cierre)
+@pytest.fixture(scope='function', autouse=True)
+def asignar_nombre_video(page, request):
+    # Guardamos la referencia del video antes de que desaparezca
+    video = page.video
+    nombre_test = request.node.name.replace("[chromium]", "")
+    
+    yield  # Ejecuta el test
+    
+    # Cerramos el contexto explícitamente para que Playwright suelte el archivo
+    page.context.close()
+    
+    if video:
+        ruta_original = video.path()
+        nueva_ruta = os.path.join("evidencias", f"{nombre_test}.webm")
+        
+        # Reintento pequeño por si Windows es lento
+        for _ in range(5):
+            try:
+                if os.path.exists(ruta_original):
+                    if os.path.exists(nueva_ruta):
+                        os.remove(nueva_ruta)
+                    os.rename(ruta_original, nueva_ruta)
+                break
+            except PermissionError:
+                time.sleep(0.5)
