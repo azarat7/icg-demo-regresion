@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 from pathlib import Path
 
 EVIDENCIAS = Path('evidencias')
