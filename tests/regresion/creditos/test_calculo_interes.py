@@ -5,7 +5,7 @@ EVIDENCIAS = Path('evidencias')
 EVIDENCIAS.mkdir(exist_ok=True)
 BASE = 'http://localhost:8080'
 
-@pytest.mark.xray('PRB-16')   
+@pytest.mark.xray('PRB-16')   #comentario
 def test_PRB_16_calculo_interes_simple_retorna_valor_correcto(page):
     # Screenshot 1: Dashboard inicial
     page.goto(f'{BASE}/dashboard.html')
