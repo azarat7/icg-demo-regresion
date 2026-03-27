@@ -27,3 +27,4 @@ def test_PRB_16_calculo_interes_simple_retorna_valor_correcto(page):
     # CORRIDA 1 — FALLA intencional: cambiar 1000.00 por 9999.00
     # CORRIDA 2 — PASS: dejar 1000.00
     assert 'Q 9999.00' in resultado, f'Resultado incorrecto: {resultado}'
+    page.wait_for_timeout(1000) 
