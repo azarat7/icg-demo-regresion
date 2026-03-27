@@ -1,0 +1,71 @@
+name: Regresion Automatizada ICG
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-regresion:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del codigo
+        uses: actions/checkout@v4
+
+      - name: Instalar Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar dependencias
+        run: |
+          pip install -r requirements.txt
+          playwright install --with-deps chromium
+
+      - name: Crear carpetas necesarias
+        run: mkdir -p test-results evidencias
+
+      - name: Limpiar evidencias previas
+        run: rm -rf evidencias/*.png test-results/*.xml 
+        
+      - name: Ejecutar tests de regresion
+        run: pytest tests/regresion/ -v --junitxml=test-results/junit.xml
+
+            
+      # ── Activar cuando Xray esté disponible ──────────────────────────────
+      # - name: Autenticar con Xray Cloud
+      #   if: always()
+      #   run: |
+      #     TOKEN=$(curl -s -X POST \
+      #       'https://xray.cloud.getxray.app/api/v2/authenticate' \
+      #       -H 'Content-Type: application/json' \
+      #       -d '{"client_id":"'$XRAY_CLIENT_ID'","client_secret":"'$XRAY_CLIENT_SECRET'"}' \
+      #       | tr -d '"')
+      #     echo "XRAY_TOKEN=$TOKEN" >> $GITHUB_ENV
+      #   env:
+      #     XRAY_CLIENT_ID: ${{ secrets.XRAY_CLIENT_ID }}
+      #     XRAY_CLIENT_SECRET: ${{ secrets.XRAY_CLIENT_SECRET }}
+      #
+      # - name: Publicar resultados en Xray
+      #   if: always()
+      #   run: |
+      #     curl -s -X POST \
+      #     'https://xray.cloud.getxray.app/api/v2/import/execution/junit?projectKey=PRB' \
+      #       -H "Authorization: Bearer $XRAY_TOKEN" \
+      #       -H 'Content-Type: text/xml' \
+      #       --data-binary @test-results/junit.xml
+      #
+      # - name: Adjuntar screenshots a Xray
+      #   if: always()
+      #   run: python scripts/adjuntar_screenshots.py
+      #   env:
+      #     XRAY_TOKEN: ${{ env.XRAY_TOKEN }}
+      # ─────────────────────────────────────────────────────────────────────
+
+      - name: Subir evidencias a GitHub Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-${{ github.head_ref }}-PR${{ github.event.pull_request.number }}
+          path: evidencias/
+          retention-days: 30

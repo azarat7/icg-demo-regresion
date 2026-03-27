@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang='es'>
+<head>
+  <meta charset='UTF-8'>
+  <title>ICG Dashboard</title>
+  <style>
+    body{font-family:Arial,sans-serif;background:#f4f7fa;margin:0;}
+    .hdr{background:#3796BF;color:white;padding:16px 30px;
+         display:flex;justify-content:space-between;align-items:center;}
+    .hdr span{font-size:20px;font-weight:bold;}
+    .hdr small{font-size:13px;opacity:.85;}
+    .content{padding:30px;}
+    h2{color:#607896;font-size:18px;margin-bottom:20px;}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+    .card{background:white;padding:24px;border-radius:8px;
+          box-shadow:0 2px 8px rgba(0,0,0,.08);
+          border-left:4px solid #3796BF;}
+    .card h3{color:#3796BF;margin:0 0 8px;font-size:15px;}
+    .card p{color:#333;font-size:22px;font-weight:bold;margin:0;}
+    .card small{color:#999;font-size:12px;}
+    #res-calculo{color:#1A7340;font-weight:bold;font-size:18px;margin-top:10px;}
+    .calc{background:white;padding:24px;border-radius:8px;
+          max-width:400px;margin-top:24px;
+          box-shadow:0 2px 8px rgba(0,0,0,.08);}
+    .calc h3{color:#3796BF;margin:0 0 12px;}
+    .calc input{width:100%;padding:8px;margin:5px 0;
+                border:1px solid #ccc;border-radius:4px;
+                box-sizing:border-box;font-size:13px;}
+    .calc button{background:#CB8531;color:white;border:none;
+                 padding:9px 20px;border-radius:4px;
+                 cursor:pointer;font-size:13px;margin-top:6px;}
+    #total-clientes{font-size:22px;font-weight:bold;}
+  </style>
+</head>
+<body>
+  <div class='hdr'>
+    <span>ICG Sistema de Gestion Financiera</span>
+    <small id='usuario-sesion'>analista@icg.com</small>
+  </div>
+  <div class='content'>
+    <h2>Panel Principal</h2>
+    <div class='grid'>
+      <div class='card'>
+        <h3>Creditos Activos</h3>
+        <p>248</p>
+        <small>Actualizado hoy</small>
+      </div>
+      <div class='card'>
+        <h3>Solicitudes Pendientes</h3>
+        <p>17</p>
+        <small>Pendientes de revision</small>
+      </div>
+      <div class='card'>
+        <h3>Clientes Registrados</h3>
+        <p id='total-clientes'>1430</p>
+        <small>Total activos</small><br><br>
+        <button id='btn-ver-detalle'
+          onclick='verDetalle()'
+          style='background:#CB8531;color:white;border:none;
+                 padding:6px 14px;border-radius:4px;
+                 cursor:pointer;font-size:12px;'>
+          Ver detalle
+        </button>
+        <div id='detalle-clientes' style='display:none;margin-top:10px;
+             font-size:12px;color:#607896;border-top:1px solid #eee;padding-top:8px;'>
+          <strong>Activos:</strong> 1,280<br>
+          <strong>Inactivos:</strong> 150<br>
+          <strong>Nuevos este mes:</strong> 47
+        </div>
+      </div>
+    </div>
+    <div class='calc'>
+      <h3>Calculadora de Interes Simple</h3>
+      <input id='capital' type='number' placeholder='Capital (Q)'>
+      <input id='tasa'    type='number' placeholder='Tasa anual (%)'>
+      <input id='tiempo'  type='number' placeholder='Tiempo (anios)'>
+      <button onclick='calcular()'>Calcular</button>
+      <div id='res-calculo'></div>
+    </div>
+  </div>
+  <script>
+    function calcular(){
+      const c=parseFloat(document.getElementById('capital').value);
+      const t=parseFloat(document.getElementById('tasa').value)/100;
+      const n=parseFloat(document.getElementById('tiempo').value);
+      document.getElementById('res-calculo').textContent=
+        'Interes: Q '+(c*t*n).toFixed(2);
+    }
+    function verDetalle(){
+      document.getElementById('detalle-clientes').style.display='block';
+      document.getElementById('btn-ver-detalle').style.display='none';
+    }
+  </script>
+</body>
+</html>
