@@ -31,3 +31,4 @@ def test_PRB_17_total_clientes_visible_en_dashboard(page):
     total = page.locator('#total-clientes').text_content()
     assert '1430' in total, f'Total incorrecto: {total}'
     assert page.locator('#detalle-clientes').is_visible()
+    page.wait_for_timeout(1000) 

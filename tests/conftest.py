@@ -23,11 +23,14 @@ def servidor_icg():
 @pytest.fixture(scope='session')
 def browser_type_launch_args(browser_type_launch_args):
     es_ci = os.environ.get('GITHUB_ACTIONS') == 'true' or os.environ.get('CI') == 'true'
+    
     return {
         **browser_type_launch_args,
         "headless": es_ci,
-        "slow_mo": 0 if es_ci else 800
+        # Agregamos un pequeño retraso (slow_mo) de 500ms siempre para el video
+        "slow_mo": 500 if es_ci else 1000 
     }
+
 
 # 3. Configuración de Grabación de Video (1 por test)
 @pytest.fixture(scope='function')
