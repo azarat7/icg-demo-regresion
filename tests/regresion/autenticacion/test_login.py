@@ -27,5 +27,4 @@ def test_PRB_15_login_exitoso_con_credenciales_validas(page):
     
     assert 'Dashboard' in page.title()
     
-    # --- CRÍTICO: Pausa final de 2 segundos para que el video no se corte ---
     page.wait_for_timeout(1000) 
