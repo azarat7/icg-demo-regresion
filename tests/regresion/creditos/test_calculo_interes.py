@@ -22,5 +22,5 @@ def test_PRB_16_calculo_interes_simple_retorna_valor_correcto(page):
     page.screenshot(path=str(EVIDENCIAS / 'PRB16_03_resultado.png'))
 
     # VALIDACION CORRECTA
-    assert 'Q 999.00' in resultado, f'Resultado incorrecto: {resultado}'
+    assert 'Q 1000.00' in resultado, f'Resultado incorrecto: {resultado}'
     page.wait_for_timeout(1000)
