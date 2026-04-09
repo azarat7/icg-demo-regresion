@@ -5,7 +5,7 @@ EVIDENCIAS = Path('evidencias')
 EVIDENCIAS.mkdir(exist_ok=True)
 BASE = 'http://localhost:8080'
 
-@pytest.mark.xray('PRB-16')   #comentario
+@pytest.mark.xray('PRB3103-16')   #comentario
 def test_PRB_16_calculo_interes_simple_retorna_valor_correcto(page):
     page.goto(f'{BASE}/dashboard.html')
     page.screenshot(path=str(EVIDENCIAS / 'PRB16_01_dashboard.png'))
@@ -21,6 +21,6 @@ def test_PRB_16_calculo_interes_simple_retorna_valor_correcto(page):
 
     page.screenshot(path=str(EVIDENCIAS / 'PRB16_03_resultado.png'))
 
-    # VALIDACION CORRECTA
+    # VALIDACION CORRECTA 1000.00 Incorrecta 999.99
     assert 'Q 1000.00' in resultado, f'Resultado incorrecto: {resultado}'
-    page.wait_for_timeout(1000)
+    page.wait_for_timeout(2000)
