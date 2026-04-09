@@ -5,7 +5,7 @@ EVIDENCIAS = Path('evidencias')
 EVIDENCIAS.mkdir(exist_ok=True)
 BASE = 'http://localhost:8080'
 
-@pytest.mark.xray('PRB-15')
+@pytest.mark.xray('PRB3103-15')
 def test_PRB_15_login_exitoso_con_credenciales_validas(page):
     # 1. Ir a la pantalla de login
     page.goto(f'{BASE}/index.html')

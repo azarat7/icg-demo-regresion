@@ -5,7 +5,7 @@ EVIDENCIAS = Path('evidencias')
 EVIDENCIAS.mkdir(exist_ok=True)
 BASE = 'http://localhost:8080'
 
-@pytest.mark.xray('PRB-17')
+@pytest.mark.xray('PRB3103-17')
 def test_PRB_17_total_clientes_visible_en_dashboard(page):
     # Screenshot 1: Login — punto de partida del flujo
     page.goto(f'{BASE}/index.html')
