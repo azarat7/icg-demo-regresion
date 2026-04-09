@@ -22,5 +22,5 @@ def test_PRB3103_16_calculo_interes_simple_retorna_valor_correcto(page):
     page.screenshot(path=str(EVIDENCIAS / 'PRB3103_03_resultado.png'))
 
     # VALIDACION CORRECTA 1000.00 Incorrecta 999.99
-    assert 'Q 999.99' in resultado, f'Resultado incorrecto: {resultado}'
+    assert 'Q 1000.00' in resultado, f'Resultado incorrecto: {resultado}'
     page.wait_for_timeout(2000)
