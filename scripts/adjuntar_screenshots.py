@@ -4,7 +4,7 @@ import requests
 from pathlib import Path
 
 TOKEN   = os.environ.get('XRAY_TOKEN', '')
-BASE    = 'https://xray.cloud.getxray.app'
+BASE    = 'https://xray.cloud.getxray.app/api/v2'
 CARPETA = Path('evidencias')
 
 def obtener_ultima_ejecucion():
@@ -12,11 +12,18 @@ def obtener_ultima_ejecucion():
         'Authorization': f'Bearer {TOKEN}',
         'Content-Type': 'application/json'
     }
-    # Asegúrate de que el projectKey coincida con tu proyecto de Jira
     r = requests.get(
-        f'{BASE}/testexecutions?projectKey=PRB&limit=1', 
+        f'{BASE}/testexecutions?projectKey=PRB3103&limit=1',
         headers=headers
     )
+    
+    print(f'Status: {r.status_code}')
+    print(f'Respuesta: {r.text[:200]}')
+    
+    if r.status_code != 200 or not r.text.strip():
+        print('⚠️ Respuesta vacía o error de autenticación')
+        return None
+        
     data = r.json()
     if data and len(data) > 0:
         return data[0].get('id')
@@ -25,7 +32,6 @@ def obtener_ultima_ejecucion():
 def adjuntar_video(ejecucion_id, archivo):
     headers = {'Authorization': f'Bearer {TOKEN}'}
     with open(archivo, 'rb') as f:
-        # Enviamos el archivo con el tipo de contenido correcto para video
         requests.post(
             f'{BASE}/testexecutions/{ejecucion_id}/attachment',
             headers=headers,
@@ -34,18 +40,21 @@ def adjuntar_video(ejecucion_id, archivo):
     print(f'🎞️ Video adjuntado: {archivo.name}')
 
 if __name__ == '__main__':
+    if not TOKEN:
+        print('⚠️ XRAY_TOKEN no disponible')
+        exit(0)
+
     eid = obtener_ultima_ejecucion()
     if not eid:
-        print('⚠️ No se encontró Test Execution — Verificar cuando Xray esté activo')
+        print('⚠️ No se encontró Test Execution')
         exit(0)
         
-    # Buscamos todos los archivos .webm generados por Playwright
     videos = list(CARPETA.glob('*.webm'))
     if not videos:
-        print('⚠️ No se encontraron videos en la carpeta evidencias/')
+        print('⚠️ No se encontraron videos en evidencias/')
         exit(0)
 
     for vid in sorted(videos):
         adjuntar_video(eid, vid)
         
-    print('✅ Todos los videos han sido adjuntados en Xray')
+    print('✅ Todos los videos adjuntados en Xray')
