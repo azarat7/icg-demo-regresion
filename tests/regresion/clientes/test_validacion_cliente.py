@@ -5,8 +5,8 @@ EVIDENCIAS = Path('evidencias')
 EVIDENCIAS.mkdir(exist_ok=True)
 BASE = 'http://localhost:8080'
 
-@pytest.mark.xray('PRB3103-17')
-def test_PRB3103_17_total_clientes_visible_en_dashboard(page):
+@pytest.mark.xray('PRB3103-44')
+def test_PRB3103_44_validacion_datos_cliente_campos_requeridos(page):
     # Screenshot 1: Login — punto de partida del flujo
     page.goto(f'{BASE}/index.html')
     page.screenshot(path=str(EVIDENCIAS / 'PRB3103_01_login.png'))

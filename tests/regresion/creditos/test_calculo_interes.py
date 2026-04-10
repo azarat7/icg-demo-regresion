@@ -5,8 +5,8 @@ EVIDENCIAS = Path('evidencias')
 EVIDENCIAS.mkdir(exist_ok=True)
 BASE = 'http://localhost:8080'
 
-@pytest.mark.xray('PRB3103-16')   #comentario
-def test_PRB3103_16_calculo_interes_simple_retorna_valor_correcto(page):
+@pytest.mark.xray('PRB3103-41')
+def test_PRB3103_41_calculo_interes_simple_retorna_valor_correcto(page):
     page.goto(f'{BASE}/dashboard.html')
     page.screenshot(path=str(EVIDENCIAS / 'PRB3103_01_dashboard.png'))
 
