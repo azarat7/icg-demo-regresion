@@ -1,5 +1,5 @@
 pytest
 playwright
 pytest-playwright
-pytest-jira-xray
+pytest-xray
 requests
