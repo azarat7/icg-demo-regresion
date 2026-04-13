@@ -49,47 +49,33 @@ def adjuntar_archivo(issue_id, archivo, mime_type):
         print(f'  ❌ {archivo.name} — HTTP {r.status_code}: {r.text[:300]}')
     return r.status_code in (200, 201)
 
-def obtener_issue_id_xray(key, token):
-    r = requests.post(
-        'https://xray.cloud.getxray.app/api/v2/graphql',
-        headers={
-            'Authorization': f'Bearer {token}',
-            'Content-Type': 'application/json'
-        },
-        json={"query": f'{{ getTestPlan(issueId: "{key}") {{ issueId }} }}'}
-    )
-    print(f'  GraphQL status: {r.status_code}')
-    print(f'  GraphQL response: {r.text[:300]}')
-    if r.status_code == 200:
-        data = r.json()
-        result = data.get('data', {}).get('getTestPlan')
-        if result:
-            return result.get('issueId')
-    return None
-
 def vincular_al_test_plan(token):
     print(f'🔗 Vinculando {EXECUTION_KEY} al Test Plan {TEST_PLAN_KEY}...')
 
-    tp_issue_id = obtener_issue_id_xray(TEST_PLAN_KEY, token)
-    te_issue_id = obtener_issue_id_xray(EXECUTION_KEY, token)
+    tp_id = obtener_issue_id(TEST_PLAN_KEY)  # reutiliza la función que ya funciona
+    te_id = obtener_issue_id(EXECUTION_KEY)  # misma función
 
-    if not tp_issue_id or not te_issue_id:
+    if not tp_id or not te_id:
         print('❌ No se pudieron obtener los IDs internos')
         return
 
-    mutation = f'{{"query":"mutation {{ addTestExecutionsToTestPlan(issueId: \\"{tp_issue_id}\\", testExecIssueIds: [\\"{ te_issue_id}\\"]) {{ addedTestExecutions warning }} }}"}}'
+    print(f'  TP ID: {tp_id} | TE ID: {te_id}')
+
     r = requests.post(
         'https://xray.cloud.getxray.app/api/v2/graphql',
         headers={
             'Authorization': f'Bearer {token}',
             'Content-Type': 'application/json'
         },
-        data=mutation
+        json={
+            "query": f'mutation {{ addTestExecutionsToTestPlan(issueId: "{tp_id}", testExecIssueIds: ["{te_id}"]) {{ addedTestExecutions warning }} }}'
+        }
     )
+    print(f'  GraphQL response: {r.text[:300]}')
     if r.status_code == 200 and 'errors' not in r.json():
-        print(f'  ✅ Vinculado correctamente al Test Plan')
+        print('  ✅ Vinculado correctamente al Test Plan')
     else:
-        print(f'  ❌ Error al vincular — HTTP {r.status_code}: {r.text[:300]}')
+        print(f'  ❌ Error al vincular — HTTP {r.status_code}')
 
 if __name__ == '__main__':
     if not JIRA_EMAIL or not JIRA_API_TOKEN:
