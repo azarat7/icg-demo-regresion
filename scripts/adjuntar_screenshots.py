@@ -52,7 +52,7 @@ def adjuntar_archivo(issue_id, archivo, mime_type):
 def vincular_al_test_plan(token):
     print(f'🔗 Vinculando {EXECUTION_KEY} al Test Plan {TEST_PLAN_KEY}...')
     r = requests.post(
-        f'{BASE_XRAY}/testplans/{TEST_PLAN_KEY}/testexecutions',
+        f'{BASE_XRAY}/test-plans/{TEST_PLAN_KEY}/test-executions',
         headers={
             'Authorization': f'Bearer {token}',
             'Content-Type': 'application/json'
