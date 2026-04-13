@@ -27,13 +27,13 @@ jobs:
 
       - name: Ejecutar tests y publicar en Xray
         run: |
-          pytest tests/regresion/ -v \
+          OUTPUT=$(pytest tests/regresion/ -v \
             --junitxml=test-results/junit.xml \
             --jira-xray \
             --cloud \
-            --client-secret-auth \
-            2>&1 | tee test-results/pytest.log; true
-          KEY=$(grep -oP '(?<=Test Execution Id: )PRB3103-\d+' test-results/pytest.log | head -1 || echo "")
+            --client-secret-auth 2>&1)
+          echo "$OUTPUT"
+          KEY=$(echo "$OUTPUT" | grep -oP '(?<=Test Execution Id: )PRB3103-\d+' | head -1 || echo "")
           echo "XRAY_EXECUTION_KEY=$KEY" >> $GITHUB_ENV
           echo "Key capturada: $KEY"
         env:
