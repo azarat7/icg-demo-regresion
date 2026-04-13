@@ -49,20 +49,46 @@ def adjuntar_archivo(issue_id, archivo, mime_type):
         print(f'  ❌ {archivo.name} — HTTP {r.status_code}: {r.text[:300]}')
     return r.status_code in (200, 201)
 
-def vincular_al_test_plan(token):
-    print(f'🔗 Vinculando {EXECUTION_KEY} al Test Plan {TEST_PLAN_KEY}...')
+def obtener_issue_id_xray(key, token):
+    """Obtiene el issueId interno de Xray usando GraphQL"""
+    query = f'{{"query":"{{ getTestPlan(issueId: \\"{key}\\") {{ issueId }} }}"}}'
     r = requests.post(
-        f'{BASE_XRAY}/test-plans/{TEST_PLAN_KEY}/test-executions',
+        'https://xray.cloud.getxray.app/api/v2/graphql',
         headers={
             'Authorization': f'Bearer {token}',
             'Content-Type': 'application/json'
         },
-        json={'add': [EXECUTION_KEY]}
+        data=query
     )
-    if r.status_code in (200, 201, 204):
+    if r.status_code == 200:
+        data = r.json()
+        return data.get('data', {}).get('getTestPlan', {}).get('issueId')
+    print(f'❌ Error obteniendo ID del Test Plan — HTTP {r.status_code}: {r.text[:200]}')
+    return None
+
+def vincular_al_test_plan(token):
+    print(f'🔗 Vinculando {EXECUTION_KEY} al Test Plan {TEST_PLAN_KEY}...')
+
+    tp_issue_id = obtener_issue_id_xray(TEST_PLAN_KEY, token)
+    te_issue_id = obtener_issue_id_xray(EXECUTION_KEY, token)
+
+    if not tp_issue_id or not te_issue_id:
+        print('❌ No se pudieron obtener los IDs internos')
+        return
+
+    mutation = f'{{"query":"mutation {{ addTestExecutionsToTestPlan(issueId: \\"{tp_issue_id}\\", testExecIssueIds: [\\"{ te_issue_id}\\"]) {{ addedTestExecutions warning }} }}"}}'
+    r = requests.post(
+        'https://xray.cloud.getxray.app/api/v2/graphql',
+        headers={
+            'Authorization': f'Bearer {token}',
+            'Content-Type': 'application/json'
+        },
+        data=mutation
+    )
+    if r.status_code == 200 and 'errors' not in r.json():
         print(f'  ✅ Vinculado correctamente al Test Plan')
     else:
-        print(f'  ❌ Error al vincular — HTTP {r.status_code}: {r.text[:200]}')
+        print(f'  ❌ Error al vincular — HTTP {r.status_code}: {r.text[:300]}')
 
 if __name__ == '__main__':
     if not JIRA_EMAIL or not JIRA_API_TOKEN:
