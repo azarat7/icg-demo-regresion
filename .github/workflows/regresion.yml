@@ -25,9 +25,6 @@ jobs:
       - name: Crear carpetas necesarias
         run: mkdir -p test-results evidencias
 
-      - name: Limpiar evidencias previas
-        run: rm -rf evidencias/*.png evidencias/*.webm test-results/*.xml
-
       - name: Ejecutar tests y publicar en Xray
         run: |
           pytest tests/regresion/ -v \
