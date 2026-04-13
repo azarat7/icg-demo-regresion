@@ -41,7 +41,7 @@ jobs:
           XRAY_CLIENT_ID: ${{ secrets.XRAY_CLIENT_ID }}
           XRAY_CLIENT_SECRET: ${{ secrets.XRAY_CLIENT_SECRET }}
           XRAY_EXECUTION_SUMMARY: "[AUTO] Pruebas de Regresión PR#${{ github.event.pull_request.number }}"
-          
+
       - name: Adjuntar evidencias a Xray
         if: always() && env.XRAY_EXECUTION_KEY != ''
         run: python scripts/adjuntar_screenshots.py
@@ -49,6 +49,8 @@ jobs:
           XRAY_EXECUTION_KEY: ${{ env.XRAY_EXECUTION_KEY }}
           JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          XRAY_CLIENT_ID: ${{ secrets.XRAY_CLIENT_ID }}
+          XRAY_CLIENT_SECRET: ${{ secrets.XRAY_CLIENT_SECRET }}
 
       - name: Subir evidencias a GitHub Artifacts
         if: always()
