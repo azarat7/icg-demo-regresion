@@ -50,20 +50,21 @@ def adjuntar_archivo(issue_id, archivo, mime_type):
     return r.status_code in (200, 201)
 
 def obtener_issue_id_xray(key, token):
-    """Obtiene el issueId interno de Xray usando GraphQL"""
-    query = f'{{"query":"{{ getTestPlan(issueId: \\"{key}\\") {{ issueId }} }}"}}'
     r = requests.post(
         'https://xray.cloud.getxray.app/api/v2/graphql',
         headers={
             'Authorization': f'Bearer {token}',
             'Content-Type': 'application/json'
         },
-        data=query
+        json={"query": f'{{ getTestPlan(issueId: "{key}") {{ issueId }} }}'}
     )
+    print(f'  GraphQL status: {r.status_code}')
+    print(f'  GraphQL response: {r.text[:300]}')
     if r.status_code == 200:
         data = r.json()
-        return data.get('data', {}).get('getTestPlan', {}).get('issueId')
-    print(f'❌ Error obteniendo ID del Test Plan — HTTP {r.status_code}: {r.text[:200]}')
+        result = data.get('data', {}).get('getTestPlan')
+        if result:
+            return result.get('issueId')
     return None
 
 def vincular_al_test_plan(token):
