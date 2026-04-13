@@ -20,9 +20,9 @@ icg-demo-regresion/
 │   └── adjuntar_screenshots.py # Lógica para subir videos a Jira
 ├── tests/                   # Suite de pruebas automatizadas
 │   └── regresion/
-│       ├── autenticacion/   # Test de Login (PRB-15)
-│       ├── clientes/        # Test de Visualización (PRB-17)
-│       └── creditos/        # Test de Cálculos (PRB-16)
+│       ├── autenticacion/   # Test de Login (PRB3103-42)
+│       ├── clientes/        # Test de Visualización (PRB3103-44)
+│       └── creditos/        # Test de Cálculos (PRB3103-41)
 ├── conftest.py              # Configuración global de Playwright y Hooks
 ├── pytest.ini               # Optimización de reportes y logs
 └── requirements.txt         # Librerías necesarias (Pytest, Playwright)
