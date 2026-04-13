@@ -1,60 +1,55 @@
-# scripts/adjuntar_screenshots.py
 import os
 import requests
 from pathlib import Path
 
-TOKEN   = os.environ.get('XRAY_TOKEN', '')
-BASE    = 'https://xray.cloud.getxray.app/api/v2'
-CARPETA = Path('evidencias')
+TOKEN         = os.environ.get('XRAY_TOKEN', '')
+EXECUTION_KEY = os.environ.get('XRAY_EXECUTION_KEY', '')
+BASE_JIRA     = 'https://gticg.atlassian.net/rest/api/2'
+CARPETA       = Path('evidencias')
 
-def obtener_ultima_ejecucion():
-    headers = {
-        'Authorization': f'Bearer {TOKEN}',
-        'Content-Type': 'application/json'
-    }
-    r = requests.get(
-        f'{BASE}/testexecutions?projectKey=PRB3103&limit=1',
-        headers=headers
-    )
-    
-    print(f'Status: {r.status_code}')
-    print(f'Respuesta: {r.text[:200]}')
-    
-    if r.status_code != 200 or not r.text.strip():
-        print('⚠️ Respuesta vacía o error de autenticación')
-        return None
-        
-    data = r.json()
-    if data and len(data) > 0:
-        return data[0].get('id')
+def obtener_issue_id(key):
+    headers = {'Authorization': f'Bearer {TOKEN}'}
+    r = requests.get(f'{BASE_JIRA}/issue/{key}', headers=headers)
+    print(f'Status issue lookup: {r.status_code}')
+    if r.status_code == 200:
+        return r.json().get('id')
     return None
 
-def adjuntar_video(ejecucion_id, archivo):
-    headers = {'Authorization': f'Bearer {TOKEN}'}
+def adjuntar_video(issue_id, archivo):
+    headers = {
+        'Authorization': f'Bearer {TOKEN}',
+        'X-Atlassian-Token': 'no-check'
+    }
     with open(archivo, 'rb') as f:
-        requests.post(
-            f'{BASE}/testexecutions/{ejecucion_id}/attachment',
+        r = requests.post(
+            f'{BASE_JIRA}/issue/{issue_id}/attachments',
             headers=headers,
             files={'file': (archivo.name, f, 'video/webm')}
         )
-    print(f'🎞️ Video adjuntado: {archivo.name}')
+    print(f'Adjuntado {archivo.name} — status: {r.status_code}')
 
 if __name__ == '__main__':
     if not TOKEN:
         print('⚠️ XRAY_TOKEN no disponible')
         exit(0)
 
-    eid = obtener_ultima_ejecucion()
-    if not eid:
-        print('⚠️ No se encontró Test Execution')
+    if not EXECUTION_KEY:
+        print('⚠️ XRAY_EXECUTION_KEY no disponible')
         exit(0)
-        
+
+    print(f'Adjuntando evidencias a {EXECUTION_KEY}')
+    
+    issue_id = obtener_issue_id(EXECUTION_KEY)
+    if not issue_id:
+        print('⚠️ No se pudo obtener el ID del issue')
+        exit(0)
+
     videos = list(CARPETA.glob('*.webm'))
     if not videos:
         print('⚠️ No se encontraron videos en evidencias/')
         exit(0)
 
     for vid in sorted(videos):
-        adjuntar_video(eid, vid)
-        
+        adjuntar_video(issue_id, vid)
+
     print('✅ Todos los videos adjuntados en Xray')

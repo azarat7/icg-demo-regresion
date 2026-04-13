@@ -47,11 +47,13 @@ jobs:
       - name: Publicar resultados en Xray
         if: always()
         run: |
-          curl -s -X POST \
-            'https://xray.cloud.getxray.app/api/v2/import/execution/junit?projectKey=PRB3103' \
+          RESPONSE=$(curl -s -X POST \
+            'https://xray.cloud.getxray.app/api/v2/import/execution/junit/multipart?projectKey=PRB3103' \
             -H "Authorization: Bearer $XRAY_TOKEN" \
-            -H 'Content-Type: text/xml' \
-            --data-binary @test-results/junit.xml
+            -F 'info={"fields":{"project":{"key":"PRB3103"},"summary":"Regresion Automatizada - PR #${{ github.event.pull_request.number }}","description":"Ejecucion automatica disparada por PR hacia main"}};type=application/json' \
+            -F 'results=@test-results/junit.xml;type=text/xml')
+          echo "Respuesta Xray: $RESPONSE"
+          echo "XRAY_EXECUTION_KEY=$(echo $RESPONSE | python3 -c 'import sys,json; print(json.load(sys.stdin)["key"])')" >> $GITHUB_ENV
         env:
           XRAY_TOKEN: ${{ env.XRAY_TOKEN }}
 
@@ -60,6 +62,7 @@ jobs:
         run: python scripts/adjuntar_screenshots.py
         env:
           XRAY_TOKEN: ${{ env.XRAY_TOKEN }}
+          XRAY_EXECUTION_KEY: ${{ env.XRAY_EXECUTION_KEY }}
 
       - name: Subir evidencias a GitHub Artifacts
         if: always()
