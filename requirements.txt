@@ -1,6 +1,6 @@
 pytest
 playwright
 pytest-playwright
-pytest-xray
-requests==2.28.2
-urllib3==1.26.15
+pytest-jira-xray
+requests
+urllib3
