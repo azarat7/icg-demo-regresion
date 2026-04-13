@@ -40,7 +40,7 @@ jobs:
           XRAY_API_BASE_URL: https://xray.cloud.getxray.app
           XRAY_CLIENT_ID: ${{ secrets.XRAY_CLIENT_ID }}
           XRAY_CLIENT_SECRET: ${{ secrets.XRAY_CLIENT_SECRET }}
-          XRAY_EXECUTION_SUMMARY: "Prueba regresion PR#${{ github.event.pull_request.number }}"
+          XRAY_EXECUTION_SUMMARY: "[AUTO] Pruebas de Regresión PR#${{ github.event.pull_request.number }}"
           
       - name: Adjuntar evidencias a Xray
         if: always() && env.XRAY_EXECUTION_KEY != ''
