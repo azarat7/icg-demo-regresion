@@ -19,14 +19,14 @@ def obtener_issue_id(key):
     print(f'Respuesta: {r.text[:200]}')
     return None
 
-def adjuntar_video(issue_id, archivo):
+def adjuntar_archivo(issue_id, archivo, mime_type):
     headers = {'X-Atlassian-Token': 'no-check'}
     with open(archivo, 'rb') as f:
         r = requests.post(
             f'{BASE_JIRA}/issue/{issue_id}/attachments',
             auth=AUTH,
             headers=headers,
-            files={'file': (archivo.name, f, 'video/webm')}
+            files={'file': (archivo.name, f, mime_type)}
         )
     print(f'Adjuntado {archivo.name} — status: {r.status_code}')
 
@@ -47,11 +47,18 @@ if __name__ == '__main__':
         exit(0)
 
     videos = list(CARPETA.glob('*.webm'))
-    if not videos:
-        print('⚠️ No se encontraron videos en evidencias/')
+    imagenes = list(CARPETA.glob('*.png'))
+
+    if not videos and not imagenes:
+        print('⚠️ No se encontraron evidencias en evidencias/')
         exit(0)
 
+    print(f'📹 Videos encontrados: {len(videos)}')
     for vid in sorted(videos):
-        adjuntar_video(issue_id, vid)
+        adjuntar_archivo(issue_id, vid, 'video/webm')
 
-    print('✅ Todos los videos adjuntados en Xray')
+    print(f'🖼️ Imágenes encontradas: {len(imagenes)}')
+    for img in sorted(imagenes):
+        adjuntar_archivo(issue_id, img, 'image/png')
+
+    print('✅ Todas las evidencias adjuntadas en Xray')
