@@ -27,15 +27,12 @@ def browser_type_launch_args(browser_type_launch_args):
     return {
         **browser_type_launch_args,
         "headless": es_ci,
-        # Agregamos un pequeño retraso (slow_mo) de 500ms siempre para el video
-        "slow_mo": 500 if es_ci else 1000 
+        "slow_mo": 500 if es_ci else 1000
     }
-
 
 # 3. Configuración de Grabación de Video (1 por test)
 @pytest.fixture(scope='function')
 def browser_context_args(browser_context_args):
-    # Asegurar que la carpeta existe antes de grabar
     Path("evidencias").mkdir(exist_ok=True)
     return {
         **browser_context_args,
@@ -46,20 +43,17 @@ def browser_context_args(browser_context_args):
 # 4. Renombrar Video de forma segura (Esperando al cierre)
 @pytest.fixture(scope='function', autouse=True)
 def asignar_nombre_video(page, request):
-    # Guardamos la referencia del video antes de que desaparezca
     video = page.video
     nombre_test = request.node.name.replace("[chromium]", "")
     
-    yield  # Ejecuta el test
-    
-    # Cerramos el contexto explícitamente para que Playwright suelte el archivo
+    yield
+
     page.context.close()
     
     if video:
         ruta_original = video.path()
         nueva_ruta = os.path.join("evidencias", f"{nombre_test}.webm")
         
-        # Reintento pequeño por si Windows es lento
         for _ in range(5):
             try:
                 if os.path.exists(ruta_original):
@@ -69,3 +63,8 @@ def asignar_nombre_video(page, request):
                 break
             except PermissionError:
                 time.sleep(0.5)
+
+# 5. Limpiar nombre del test en JUnit XML (quitar [chromium])
+def pytest_collection_modifyitems(items):
+    for item in items:
+        item._nodeid = item.nodeid.replace("[chromium]", "")

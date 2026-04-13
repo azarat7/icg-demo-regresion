@@ -12,10 +12,10 @@ jobs:
       - name: Checkout del codigo
         uses: actions/checkout@v4
 
-      - name: Instalar Python 3.12
+      - name: Instalar Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.11'
 
       - name: Instalar dependencias
         run: |
@@ -25,51 +25,39 @@ jobs:
       - name: Crear carpetas necesarias
         run: mkdir -p test-results evidencias
 
-      - name: Limpiar evidencias previas
-        # Ahora también limpiamos los archivos .webm (videos)
-        run: rm -rf evidencias/*.png evidencias/*.webm test-results/*.xml 
-        
-      - name: Ejecutar tests de regresion
-        run: pytest tests/regresion/ -v --junitxml=test-results/junit.xml
-           
-      # ── Activar cuando Xray esté disponible ──────────────────────────────
-      # - name: Autenticar con Xray Cloud
-      #   if: always()
-      #   run: |
-      #     TOKEN=$(curl -s -X POST \
-      #       'https://xray.cloud.getxray.app/api/v2/authenticate' \
-      #       -H 'Content-Type: application/json' \
-      #       -d '{"client_id":"'$XRAY_CLIENT_ID'","client_secret":"'$XRAY_CLIENT_SECRET'"}' \
-      #       | tr -d '"')
-      #     echo "XRAY_TOKEN=$TOKEN" >> $GITHUB_ENV
-      #   env:
-      #     XRAY_CLIENT_ID: ${{ secrets.XRAY_CLIENT_ID }}
-      #     XRAY_CLIENT_SECRET: ${{ secrets.XRAY_CLIENT_SECRET }}
-      #
-      # - name: Publicar resultados en Xray
-      #   if: always()
-      #   run: |
-      #     curl -s -X POST \
-      #     'https://xray.cloud.getxray.app/api/v2/import/execution/junit?projectKey=PRB' \
-      #       -H "Authorization: Bearer $XRAY_TOKEN" \
-      #       -H 'Content-Type: text/xml' \
-      #       --data-binary @test-results/junit.xml
-      #
-      # - name: Adjuntar screenshots a Xray
-      #   if: always()
-      #   run: python scripts/adjuntar_screenshots.py
-      #   env:
-      #     XRAY_TOKEN: ${{ env.XRAY_TOKEN }}
-      # ─────────────────────────────────────────────────────────────────────
+      - name: Ejecutar tests y publicar en Xray
+        run: |
+          OUTPUT=$(pytest tests/regresion/ -v \
+            --junitxml=test-results/junit.xml \
+            --jira-xray \
+            --cloud \
+            --client-secret-auth 2>&1)
+          echo "$OUTPUT"
+          KEY=$(echo "$OUTPUT" | grep -oP '(?<=Test Execution Id: )PRB3103-\d+' | head -1 || echo "")
+          echo "XRAY_EXECUTION_KEY=$KEY" >> $GITHUB_ENV
+          echo "Key capturada: $KEY"
+        env:
+          XRAY_API_BASE_URL: https://xray.cloud.getxray.app
+          XRAY_CLIENT_ID: ${{ secrets.XRAY_CLIENT_ID }}
+          XRAY_CLIENT_SECRET: ${{ secrets.XRAY_CLIENT_SECRET }}
+          XRAY_EXECUTION_SUMMARY: "[AUTO] Pruebas de Regresión PR#${{ github.event.pull_request.number }}"
+          
+      - name: Adjuntar evidencias a Xray
+        if: always() && env.XRAY_EXECUTION_KEY != ''
+        run: python scripts/adjuntar_screenshots.py
+        env:
+          XRAY_EXECUTION_KEY: ${{ env.XRAY_EXECUTION_KEY }}
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
 
       - name: Subir evidencias a GitHub Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: evidencias-PR${{ github.event.pull_request.number }}
-          # Aseguramos que capture tanto fotos (.png) como videos (.webm)
           path: |
             evidencias/*.png
             evidencias/*.webm
             test-results/junit.xml
+            test-results/pytest.log
           retention-days: 7

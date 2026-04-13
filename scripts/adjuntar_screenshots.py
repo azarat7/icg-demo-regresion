@@ -1,51 +1,76 @@
-# scripts/adjuntar_screenshots.py
 import os
+import sys
 import requests
 from pathlib import Path
+from requests.auth import HTTPBasicAuth
 
-TOKEN   = os.environ.get('XRAY_TOKEN', '')
-BASE    = 'https://xray.cloud.getxray.app'
-CARPETA = Path('evidencias')
+JIRA_EMAIL     = os.environ.get('JIRA_EMAIL', '')
+JIRA_API_TOKEN = os.environ.get('JIRA_API_TOKEN', '')
+EXECUTION_KEY  = os.environ.get('XRAY_EXECUTION_KEY', '')
+BASE_JIRA      = 'https://gticg.atlassian.net/rest/api/3'
+CARPETA        = Path('evidencias')
 
-def obtener_ultima_ejecucion():
-    headers = {
-        'Authorization': f'Bearer {TOKEN}',
-        'Content-Type': 'application/json'
-    }
-    # Asegúrate de que el projectKey coincida con tu proyecto de Jira
-    r = requests.get(
-        f'{BASE}/testexecutions?projectKey=PRB&limit=1', 
-        headers=headers
-    )
-    data = r.json()
-    if data and len(data) > 0:
-        return data[0].get('id')
+AUTH = HTTPBasicAuth(JIRA_EMAIL, JIRA_API_TOKEN)
+
+def obtener_issue_id(key):
+    r = requests.get(f'{BASE_JIRA}/issue/{key}', auth=AUTH)
+    print(f'Status issue lookup: {r.status_code}')
+    if r.status_code == 200:
+        return r.json().get('id')
+    print(f'Respuesta: {r.text[:300]}')
     return None
 
-def adjuntar_video(ejecucion_id, archivo):
-    headers = {'Authorization': f'Bearer {TOKEN}'}
+def adjuntar_archivo(issue_id, archivo, mime_type):
+    headers = {'X-Atlassian-Token': 'no-check'}
     with open(archivo, 'rb') as f:
-        # Enviamos el archivo con el tipo de contenido correcto para video
-        requests.post(
-            f'{BASE}/testexecutions/{ejecucion_id}/attachment',
+        r = requests.post(
+            f'{BASE_JIRA}/issue/{issue_id}/attachments',
+            auth=AUTH,
             headers=headers,
-            files={'file': (archivo.name, f, 'video/webm')}
+            files={'file': (archivo.name, f, mime_type)}
         )
-    print(f'🎞️ Video adjuntado: {archivo.name}')
+    if r.status_code in (200, 201):
+        print(f'  ✅ {archivo.name} adjuntado')
+    else:
+        print(f'  ❌ {archivo.name} — HTTP {r.status_code}: {r.text[:300]}')
+    return r.status_code in (200, 201)
 
 if __name__ == '__main__':
-    eid = obtener_ultima_ejecucion()
-    if not eid:
-        print('⚠️ No se encontró Test Execution — Verificar cuando Xray esté activo')
-        exit(0)
-        
-    # Buscamos todos los archivos .webm generados por Playwright
-    videos = list(CARPETA.glob('*.webm'))
-    if not videos:
-        print('⚠️ No se encontraron videos en la carpeta evidencias/')
-        exit(0)
+    if not JIRA_EMAIL or not JIRA_API_TOKEN:
+        print('⚠️  JIRA_EMAIL o JIRA_API_TOKEN no disponibles')
+        sys.exit(0)
 
-    for vid in sorted(videos):
-        adjuntar_video(eid, vid)
-        
-    print('✅ Todos los videos han sido adjuntados en Xray')
+    if not EXECUTION_KEY:
+        print('⚠️  XRAY_EXECUTION_KEY no disponible')
+        sys.exit(0)
+
+    print(f'📎 Adjuntando evidencias a {EXECUTION_KEY}')
+
+    issue_id = obtener_issue_id(EXECUTION_KEY)
+    if not issue_id:
+        print('❌ No se pudo obtener el ID del issue')
+        sys.exit(1)
+
+    videos   = sorted(CARPETA.glob('*.webm'))
+    imagenes = sorted(CARPETA.glob('*.png'))
+
+    if not videos and not imagenes:
+        print('⚠️  No se encontraron evidencias en evidencias/')
+        sys.exit(0)
+
+    print(f'📹 Videos encontrados: {len(videos)}')
+    errores = 0
+    for vid in videos:
+        if not adjuntar_archivo(issue_id, vid, 'video/webm'):
+            errores += 1
+
+    print(f'🖼️  Imágenes encontradas: {len(imagenes)}')
+    for img in imagenes:
+        if not adjuntar_archivo(issue_id, img, 'image/png'):
+            errores += 1
+
+    if errores:
+        print(f'❌ {errores} archivo(s) no se pudieron adjuntar')
+        sys.exit(1)
+
+    print('✅ Todas las evidencias adjuntadas correctamente')
