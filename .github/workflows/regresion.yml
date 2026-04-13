@@ -35,6 +35,7 @@ jobs:
           echo "XRAY_EXECUTION_KEY=$KEY" >> $GITHUB_ENV
           echo "Key capturada: $KEY"
         env:
+          XRAY_API_BASE_URL: https://xray.cloud.getxray.app
           XRAY_CLIENT_ID: ${{ secrets.XRAY_CLIENT_ID }}
           XRAY_CLIENT_SECRET: ${{ secrets.XRAY_CLIENT_SECRET }}
 
