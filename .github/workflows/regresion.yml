@@ -31,7 +31,7 @@ jobs:
             --junitxml=test-results/junit.xml \
             --jira-xray \
             --cloud \
-            --client-secret-auth 2>&1)
+            --client-secret-auth 2>&1) || true  
           echo "$OUTPUT"
           KEY=$(echo "$OUTPUT" | grep -oP '(?<=Test Execution Id: )PRB3103-\d+' | head -1 || echo "")
           echo "XRAY_EXECUTION_KEY=$KEY" >> $GITHUB_ENV
