@@ -31,11 +31,15 @@ jobs:
             --junitxml=test-results/junit.xml \
             --jira-xray \
             --cloud \
-            --client-secret-auth 2>&1)
+            --client-secret-auth 2>&1) || PYTEST_EXIT=$?
           echo "$OUTPUT"
           KEY=$(echo "$OUTPUT" | grep -oP '(?<=Test Execution Id: )PRB3103-\d+' | head -1 || echo "")
           echo "XRAY_EXECUTION_KEY=$KEY" >> $GITHUB_ENV
           echo "Key capturada: $KEY"
+          if [ "${PYTEST_EXIT:-0}" != "0" ]; then
+            echo "❌ Hubo tests fallidos — exit code: $PYTEST_EXIT"
+            exit 1
+          fi
         env:
           XRAY_API_BASE_URL: https://xray.cloud.getxray.app
           XRAY_CLIENT_ID: ${{ secrets.XRAY_CLIENT_ID }}
