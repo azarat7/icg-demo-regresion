@@ -1,4 +1,4 @@
-# 🚀 Proyecto de Automatización de Regresión ICG
+# 🚀 Proyecto de demostración para las pruebas de Regresión Automatizacidas ICG
 
 Este repositorio contiene la suite de pruebas automatizadas para el sistema ICG, desarrollada con **Python 3.12** y **Playwright**.
 
