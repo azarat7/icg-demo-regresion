@@ -17,7 +17,7 @@ icg-demo-regresion/
 │   └── regresion.yml             # Pipeline de ejecución y envío a Xray
 ├── evidencias/              # Capturas (.png) y videos (.webm) de los tests
 ├── scripts/                 # Scripts auxiliares
-│   └── adjuntar_screenshots.py # Lógica para subir videos a Jira y vincular test
+│   └── adjuntar_screenshots.py # Lógica para subir videos y vincular test a Jira 
 ├── tests/                   # Suite de pruebas automatizadas
 │   └── regresion/
 │       ├── autenticacion/   # Test de Login (PRB3103-42)
