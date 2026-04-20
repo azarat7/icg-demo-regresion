@@ -25,4 +25,4 @@ icg-demo-regresion/
 │       └── creditos/        # Test de Cálculos (PRB3103-41)
 ├── conftest.py              # Configuración global de Playwright y Hooks
 ├── pytest.ini               # Optimización de reportes y logs
-└── requirements.txt         # Librerías necesarias (Pytest, Playwright) v.03
+└── requirements.txt         # Librerías necesarias (Pytest, Playwright) v.04
